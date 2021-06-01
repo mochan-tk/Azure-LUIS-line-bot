@@ -2,6 +2,22 @@ import logging
 import os
 import azure.functions as func
 
+## https://docs.microsoft.com/ja-jp/azure/cognitive-services/luis/client-libraries-rest-api?tabs=windows&pivots=programming-language-python
+from azure.cognitiveservices.language.luis.authoring import LUISAuthoringClient
+from azure.cognitiveservices.language.luis.authoring.models import ApplicationCreateObject
+from azure.cognitiveservices.language.luis.runtime import LUISRuntimeClient
+from msrest.authentication import CognitiveServicesCredentials
+from functools import reduce
+
+import json, time, uuid
+
+appId = os.getenv('APP_ID', None)
+predictionKey = os.getenv('PREDICTION_KEY', None)
+predictionEndpoint = os.getenv('PREDICTION_ENDPOINT', None)
+
+runtimeCredentials = CognitiveServicesCredentials(predictionKey)
+clientRuntime = LUISRuntimeClient(endpoint=predictionEndpoint, credentials=runtimeCredentials)
+
 from linebot import (
     LineBotApi, WebhookHandler
 )
@@ -12,7 +28,7 @@ from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage,
 )
 
-# Azure FunctionsのApplication Settingに設定した値から取得する↓
+# get channel_secret and channel_access_token from your environment variable
 channel_secret = os.getenv('LINE_CHANNEL_SECRET', None)
 channel_access_token = os.getenv('LINE_CHANNEL_ACCESS_TOKEN', None)
 
@@ -40,7 +56,17 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
 @handler.add(MessageEvent, message=TextMessage)
 def message_text(event):
+    predictionRequest = { "query" : event.message.text }
+    predictionResponse = clientRuntime.prediction.get_slot_prediction(appId, "production", predictionRequest)
+    logging.info("Top intent: {}".format(predictionResponse.prediction.top_intent))
+    logging.info("Sentiment: {}".format (predictionResponse.prediction.sentiment))
+    logging.info("Intents: ")
+    for intent in predictionResponse.prediction.intents:
+        logging.info("\t{}".format (json.dumps (intent)))
+        logging.info("\t{}".format (type(intent)))
+    logging.info("Entities: {}".format (predictionResponse.prediction.entities))
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=event.message.text)
+        [TextSendMessage(text=f'Intent: {predictionResponse.prediction.top_intent}'),
+         TextSendMessage(text=f'Entity: {predictionResponse.prediction.entities}')]
     )

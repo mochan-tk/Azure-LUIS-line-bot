@@ -4,6 +4,9 @@
     "AzureWebJobsStorage": "",
     "FUNCTIONS_WORKER_RUNTIME": "python",
     "LINE_CHANNEL_SECRET": "<ローカルでう動かす場合はココにシークレットキーを入力>",
-    "LINE_CHANNEL_ACCESS_TOKEN": "<ローカルでう動かす場合はココにアクセストークンを入力>"
+    "LINE_CHANNEL_ACCESS_TOKEN": "<ローカルでう動かす場合はココにアクセストークンを入力>",
+    "APP_ID": "<APP_IDを入力>",
+    "PREDICTION_KEY": "<PREDICTION_KEYを入力>",
+    "PREDICTION_ENDPOINT": "<PREDICTION_ENDPOINTを入力>"
   }
 }

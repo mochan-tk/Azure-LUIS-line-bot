@@ -4,3 +4,4 @@
 
 azure-functions
 line-bot-sdk
+azure-cognitiveservices-language-luis
